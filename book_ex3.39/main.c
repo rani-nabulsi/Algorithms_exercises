@@ -1,3 +1,40 @@
+/*
+ First file: (matrix)
+ 12 10    # This line indicates the matrix dimensions: 12 rows and 10 columns
+xxxxxxtxxx
+xrpipppoxx
+xxxxxqxpxx
+xxxxxxxoxx
+xxxxxlxuxx
+xpxxxxiuxq
+xlpoxxinxx
+xuxxoxoxox
+xxxtxxxxxx
+xxxxxxxxxx
+xxxxxxxxxx
+xquoxxxxx
+
+ Second File: (words)
+pippo
+topolino
+quo
+pluto
+qui
+
+ Output example: (formatted matrix)
+  t
+pippo
+ p
+  o
+ l
+  iuq
+ l
+  n
+ u
+ o
+quo
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +53,7 @@ int main(int argc, char *argv[]) {
     char *word;  // pointer to store the word read from the second file
     int i, j, R, C;   // variables to loop + Dimensions
     FILE *fp;
+    // matrixIn & matrixOut are dynamically allocated, program searches for each word in the matrix
 
     // check for the correct number of arguments
     if (argc < 4) {
@@ -81,7 +119,9 @@ int main(int argc, char *argv[]) {
     fclose(fp);    // Close the output file
 
     // free dynamically allocated memory
-
+    free(word);
+    matrixIn = free2d(matrixIn, R);
+    matrixOut = free2d(matrixOut, R);
     return 0;
 }
 
@@ -125,7 +165,9 @@ char **free2d(char **mat, int r) {
     return mat;
 }
 
+// function iterates through the input matrix and checks if the word exists starting from any position
 // function to find a word in the input matrix and place it in the output matrix
+// uses the helper function find_all to check all possible 8 directions
 void find(char *word, char **matrixIn, char **matrixOut, int R, int C) {
     int i, j;
     // iterate over each element in the matrix and try to find the word
@@ -141,18 +183,23 @@ void find(char *word, char **matrixIn, char **matrixOut, int R, int C) {
 }
 
 // helper function to find if a ward existing starting from a given matrix position
+// word = found -> copy it into output matrix
+// row, col -> starting position in matrix, word = word we are looking for
+// mIN -> where the search is conducted, mOut -> where the word is copied if found
 int find_all(int row, int col, char *word, char **mIn, char **mOut, int R, int C) {
     char flag; // to indicate if the word is found
     int r, c, i, j;
+
     int offset[2][8] = {   // Offset array for the 8 possible directions (x and y changes)
-            {0, -1, -1, -1, 0, 1, 1, 1},
-            {1, 1, 0, -1, -1, -1, 0, 1}
+            {0, -1, -1, -1, 0, 1, 1, 1}, // rows
+            {1, 1, 0, -1, -1, -1, 0, 1} // cols
     };
     // loop through all 8 possible directions
     for (i = 0; i < 8; i++) {
         flag = 1;  // set flag to true (initially)
         // check if the word matches in this direction
         for (j = 0; j < strlen(word) && flag; j++) {
+            // this equation uses current index (i) which tells the direction and the offset array to move in that direction
             r = row + j * offset[0][i];  // update row based on direction
             c = col + j * offset[1][i];  // update column based on direction
             // check if the indices are out of bounds or the characters don't match
@@ -163,6 +210,7 @@ int find_all(int row, int col, char *word, char **mIn, char **mOut, int R, int C
         // if the word is found -> copy it to the output matrix
         if (flag == 1) {
             for (j = 0; j < strlen(word); j++) {
+                // word copied into the output matrix
                 mOut[row+j*offset[0][i]][col+j*offset[1][i]] = word[j];
             }
             return 1;  // true if the word is found
